@@ -1,11 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, GADTs,
              DataKinds, KindSignatures, TypeOperators #-}
 
-module CellMaze (
-  AllowedDirections (AD0, AD),
-  CellMaze,
-  makeMaze,
-  ) where
+module CellMaze where
 
 import Maze
 import OrdEnum
@@ -20,13 +16,13 @@ data AllowedDirections (n :: Nat) where
   AD0 :: AllowedDirections 0
   AD :: Bool -> AllowedDirections n -> AllowedDirections (n + 1)
 
-isAllowedImpl :: (OrdEnum d) => AllowedDirections n -> d -> d -> Bool
-isAllowedImpl AD0 d c = False
-isAllowedImpl (AD x a) d c = 
-  if d == c then x else isAllowedImpl a d (next c)
-
 instance (OrdEnum d) => Cell (AllowedDirections n) d where
-  isAllowed a d = isAllowedImpl a d first
+  isAllowed a d = impl a d first
+    where impl :: (OrdEnum d) => AllowedDirections n -> d -> d -> Bool
+          impl AD0 d c = False
+          impl (AD x a) d c
+            | d == c    = x
+            | otherwise = impl a d (next c)
 
 data CellMaze cell = CellMaze Width Height (Array Position cell)
 
